@@ -9,7 +9,7 @@
       $("#id").className = "italic";
       $("#more-ids").attr("font-weight", "bold");
       $("#more-and-more-ids").attr('font-size', "24px");
-      $("#simple-css").css("background-color", "yellow");
+      $(".simple-css").css("background-color", "yellow");
       $("#complex-css").css({
         "border-color": "black",
         'padding-left': '5px'

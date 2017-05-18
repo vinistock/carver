@@ -4,11 +4,14 @@ module Carver
                          /id\s?=\s?".*"/, /id\s?=\s?'.*'/, /id\s?:\s?".*"/, /id\s?:\s?'.*'/, /<[^><\/]*>/]
     JS_DECLARATIONS = [/addClass(.*)/, /removeClass(.*)/, /toggleClass(.*)/, /className\s?=\s?.*/, /attr\(".*",/,
                        /attr\('.*',/, /.css\(.*,/, /.css\(.*".*":.*}/, /.css\(.*'.*':.*}/, /"[^"]*":/, /'[^']*':/]
-    JS_SCANNERS = [/\$\(.*\).*addClass\(.*\)/, /\$\(.*\).*removeClass\(.*\)/, /\$\(.*\).*toggleClass\(.*\)/, /\$\(.*\).*css\(.*\)/,
-                   /\$\(.*\).*attr\(.*\)/]
+    JS_SCANNERS = [/.*\.addClass\(.*\)/, /.*\.removeClass\(.*\)/, /.*\.toggleClass\(.*\)/, /.*\.css\(.*\)/,
+                   /\$\(.*\).*attr\(.*\)/, /.*className\s?=\s?.*/, /.*\.css\([\s\S][^();]+\)/]
+    JS_SELECTORS = [/\$\([^()]+\)/, /(?<=querySelector)\([^()]+\)/]
+    JS_TARGETS = [/(?<=.addClass)\([^()]+\)/, /(?<=.removeClass)\([^()]+\)/, /(?<=.toggleClass)\([^()]+\)/,
+                  /(?<=.css)\([^()]+\)/, /(?<=.attr)\([^()]+\)/, /(?<=className).*/]
     HTML_DELETIONS = ['class=', 'class:', '"', "'", 'id=', 'id:', '>', '<']
     JS_DELETIONS = ['addClass', 'removeClass', 'toggleClass', "'", '"', '(', ')',
-                    ';', 'attr', '{', '}', ',', 'className', '=', '.css', ':', '$']
+                    ';', 'attr', '{', '}', ',', 'className', '=', '.css', ':', '$', '.', '#']
 
     def initialize(content, type)
       @content = content
@@ -22,11 +25,47 @@ module Carver
     private
 
     def scan_js
-      JS_DECLARATIONS.map do |regex|
-        @content.scan(regex).flatten.map do |expression|
-          self.send("#{@type}_deletions", expression)
+      JS_SCANNERS.map do |scanner|
+        @content.scan(scanner).map do |expression|
+          hash = extract_js_selector(expression)
+          hash[:classes] += extract_js_target(expression)
+          hash
         end.flatten
-      end.flatten.uniq
+      end.flatten.compact.uniq
+    end
+
+    def extract_js_target(expression)
+      JS_TARGETS.map do |regex|
+        target = expression.scan(regex).first.to_s
+
+        if target.empty?
+          nil
+        elsif target.include?('{')
+          target.split(',').map.with_index { |word| js_deletions(word.split(':').first) }
+        elsif target.include?(',')
+          js_deletions(target.split(',').first)
+        else
+          js_deletions(target)
+        end
+      end.flatten.compact
+    end
+
+    def extract_js_selector(expression)
+      JS_SELECTORS.map do |regex|
+        selector = expression.scan(regex).first.to_s
+
+        hash = { element: nil, id: nil, classes: [] }
+
+        if selector.include?('#')
+          hash[:id] = js_deletions(selector)
+        elsif selector.include?('.')
+          hash[:classes] << js_deletions(selector)
+        else
+          hash[:element] = js_deletions(selector)
+        end
+
+        selector.empty? ? nil : hash
+      end.flatten.compact.first
     end
 
     def scan_html
@@ -43,10 +82,6 @@ module Carver
                      .flatten.uniq
         }
       end
-    end
-
-    def current_type_declarations
-      self.class.const_get("#{@type.to_s.upcase}_DECLARATIONS")
     end
 
     def html_deletions(expression)

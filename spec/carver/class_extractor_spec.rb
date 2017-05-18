@@ -32,8 +32,16 @@ describe Carver::ClassExtractor do
       let(:content) { File.read('spec/fixtures/sample_javascript.js') }
 
       it 'finds css classes within javascript' do
-        expect(subject).to eq(%w(blue green visible-xs italic font-weight
-                                 font-size background-color border-color padding-left))
+        expect(subject).to eq([
+                                { element: nil, id: 'my-id', classes: ['blue'] },
+                                { element: nil, id: 'my-other-id', classes: ['green'] },
+                                { element: nil, id: 'yet-one-more', classes: ['visible-xs'] },
+                                { element: nil, id: nil, classes: %w(simple-css background-color) },
+                                { element: nil, id: 'more-ids', classes: ['font-weight'] },
+                                { element: nil, id: 'more-and-more-ids', classes: ['font-size'] },
+                                { element: nil, id: 'id', classes: ['italic'] },
+                                { element: nil, id: 'complex-css', classes: %w(border-color padding-left) }
+                              ])
       end
     end
   end
