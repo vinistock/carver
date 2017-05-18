@@ -1,13 +1,9 @@
+require_relative 'chopper'
+
 module Carver
   class Processor
-    def call
-      { data: 'result goes here' }
-    end
-
-    private
-
-    def files_for(type)
-      Dir["./**/*.#{type}*"].reject { |dir| dir.include?('tmp') || dir.include?('spec') || dir.include?('json') }
+    def call(input)
+      { data: Carver::Chopper.new(input).chop }
     end
   end
 end

@@ -5,10 +5,10 @@ module Carver
     JS_DECLARATIONS = [/addClass(.*)/, /removeClass(.*)/, /toggleClass(.*)/, /className\s?=\s?.*/, /attr\(".*",/,
                        /attr\('.*',/, /.css\(.*,/, /.css\(.*".*":.*}/, /.css\(.*'.*':.*}/, /"[^"]*":/, /'[^']*':/]
     JS_SCANNERS = [/.*\.addClass\(.*\)/, /.*\.removeClass\(.*\)/, /.*\.toggleClass\(.*\)/, /.*\.css\(.*\)/,
-                   /\$\(.*\).*attr\(.*\)/, /.*className\s?=\s?.*/, /.*\.css\([\s\S][^();]+\)/]
+                   /\$\(.*\).*attr\(.*\)/, /.*\.className\s?=\s?.*/, /.*\.css\([\s\S][^();]+\)/]
     JS_SELECTORS = [/\$\([^()]+\)/, /(?<=querySelector)\([^()]+\)/]
     JS_TARGETS = [/(?<=.addClass)\([^()]+\)/, /(?<=.removeClass)\([^()]+\)/, /(?<=.toggleClass)\([^()]+\)/,
-                  /(?<=.css)\([^()]+\)/, /(?<=.attr)\([^()]+\)/, /(?<=className).*/]
+                  /(?<=.css)\([^()]+\)/, /(?<=.attr)\([^()]+\)/, /(?<=\.className).*/]
     HTML_DELETIONS = ['class=', 'class:', '"', "'", 'id=', 'id:', '>', '<']
     JS_DELETIONS = ['addClass', 'removeClass', 'toggleClass', "'", '"', '(', ')',
                     ';', 'attr', '{', '}', ',', 'className', '=', '.css', ':', '$', '.', '#']
@@ -29,13 +29,17 @@ module Carver
       CSS_SCANNERS.map do |scanner|
         @content.scan(scanner).map do |expression|
           expression.split(',').map do |selector|
+            next if expression.include?('@import')
             hash = { element: nil, id: nil, classes: [] }
             klass = selector.scan(/(?<=\.)[^.#,{]+/).first
+            id = selector.scan(/(?<=#)[^.#,{]+/).first
+            element = selector.scan(/.+?(?=[#.])/).first
 
-            hash[:classes] << klass unless klass.nil?
-            hash[:id] = selector.scan(/(?<=#)[^.#,{]+/).first
-            hash[:element] = selector.scan(/.+?(?=[#.])/).first
-            hash
+            hash[:classes] << klass.to_s.strip unless klass.nil?
+            hash[:id] = id.to_s.strip unless id.nil?
+            hash[:element] = element.to_s.strip unless element.nil?
+
+            hash[:id].nil? && hash[:element].nil? && hash[:classes].empty? ? nil : hash
           end
         end
       end.flatten.compact
@@ -44,7 +48,7 @@ module Carver
     def scan_js
       JS_SCANNERS.map do |scanner|
         @content.scan(scanner).map do |expression|
-          hash = extract_js_selector(expression)
+          hash = extract_js_selector(expression) || { element: nil, id: nil, classes: [] }
           hash[:classes] += extract_js_target(expression)
           hash
         end.flatten
@@ -87,6 +91,7 @@ module Carver
 
     def scan_html
       @content.scan(/<[^><\/]*>/).map do |element|
+        next if element.include?('DOCTYPE') || element.include?('doctype') || element.include?('<%')
         html_tag = html_deletions(element.scan(/<([^\s]+)/).flatten.first)
         id = html_deletions(element.scan(/(id\s?=\s?".*") | (id\s?=\s?'.*') | (id\s?:\s?".*") | (id\s?:\s?'.*')/).flatten.compact.first)
 

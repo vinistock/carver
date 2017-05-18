@@ -1,5 +1,5 @@
 require 'carver/version'
-require_relative 'carver/class_extractor'
+require_relative 'carver/processor'
 
 module Carver
 
