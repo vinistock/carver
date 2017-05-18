@@ -1,6 +1,6 @@
 module Carver
   class Processor
-    def call(input)
+    def call
       { data: 'result goes here' }
     end
 
