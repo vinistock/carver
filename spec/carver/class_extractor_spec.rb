@@ -7,7 +7,6 @@ describe Carver::ClassExtractor do
     it 'initializes content, type and classes' do
       expect(subject.instance_variable_get(:@content)).to eq(content)
       expect(subject.instance_variable_get(:@type)).to eq(:html)
-      expect(subject.instance_variable_get(:@classes)).to eq([])
     end
   end
 
@@ -19,7 +18,12 @@ describe Carver::ClassExtractor do
       let(:content) { File.read('spec/fixtures/sample_html.html') }
 
       it 'finds css classes within html' do
-        expect(subject).to eq(%w(container row center bold italic super-row awesome-paragraph div h2 p))
+        expect(subject).to eq([
+                                { element: 'div', id: nil, classes: ['container'] },
+                                { element: 'div', id: 'super-row', classes: ['row'] },
+                                { element: 'h2', id: nil, classes: %w(center bold) },
+                                { element: 'p', id: 'awesome-paragraph', classes: ['italic'] }
+                              ])
       end
     end
 
