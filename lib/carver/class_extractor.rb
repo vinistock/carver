@@ -28,21 +28,29 @@ module Carver
     def scan_css
       CSS_SCANNERS.map do |scanner|
         @content.scan(scanner).map do |expression|
-          expression.split(',').map do |selector|
-            next if expression.include?('@import')
-            hash = { element: nil, id: nil, classes: [] }
-            klass = selector.scan(/(?<=\.)[^.#,{]+/).first
-            id = selector.scan(/(?<=#)[^.#,{]+/).first
-            element = selector.scan(/.+?(?=[#.])/).first
-
-            hash[:classes] << klass.to_s.strip unless klass.nil?
-            hash[:id] = id.to_s.strip unless id.nil?
-            hash[:element] = element.to_s.strip unless element.nil?
-
-            hash[:id].nil? && hash[:element].nil? && hash[:classes].empty? ? nil : hash
-          end
+          split_multiple_class_declaration(expression)
         end
       end.flatten.compact
+    end
+
+    def split_multiple_class_declaration(expression)
+      expression.split(',').map do |selector|
+        next if expression.include?('@import')
+        build_css_hash(selector)
+      end
+    end
+
+    def build_css_hash(selector)
+      hash = { element: nil, id: nil, classes: [] }
+      klass = safe_strip(selector.scan(/(?<=\.)[^.#,{]+/).first)
+      hash[:classes] << klass unless klass.nil?
+      hash[:id] = safe_strip(selector.scan(/(?<=#)[^.#,{]+/).first)
+      hash[:element] = safe_strip(selector.scan(/.+?(?=[#.])/).first)
+      hash[:id].nil? && hash[:element].nil? && hash[:classes].empty? ? nil : hash
+    end
+
+    def safe_strip(string)
+      string.to_s.strip unless string.nil?
     end
 
     def scan_js
