@@ -1,4 +1,4 @@
-describe ClassExtractor do
+describe Carver::ClassExtractor do
   describe '#initialize' do
     subject { described_class.new(content, type) }
     let(:content) { File.read('spec/fixtures/sample_html.html') }
@@ -19,7 +19,7 @@ describe ClassExtractor do
       let(:content) { File.read('spec/fixtures/sample_html.html') }
 
       it 'finds css classes within html' do
-        expect(subject).to eq(%w(container row center bold italic))
+        expect(subject).to eq(%w(container row center bold italic super-row awesome-paragraph div h2 p))
       end
     end
 
