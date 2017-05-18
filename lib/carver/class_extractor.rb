@@ -12,6 +12,7 @@ module Carver
     HTML_DELETIONS = ['class=', 'class:', '"', "'", 'id=', 'id:', '>', '<']
     JS_DELETIONS = ['addClass', 'removeClass', 'toggleClass', "'", '"', '(', ')',
                     ';', 'attr', '{', '}', ',', 'className', '=', '.css', ':', '$', '.', '#']
+    CSS_SCANNERS = [/[^{}]+(?={)/]
 
     def initialize(content, type)
       @content = content
@@ -23,6 +24,22 @@ module Carver
     end
 
     private
+
+    def scan_css
+      CSS_SCANNERS.map do |scanner|
+        @content.scan(scanner).map do |expression|
+          expression.split(',').map do |selector|
+            hash = { element: nil, id: nil, classes: [] }
+            klass = selector.scan(/(?<=\.)[^.#,{]+/).first
+
+            hash[:classes] << klass unless klass.nil?
+            hash[:id] = selector.scan(/(?<=#)[^.#,{]+/).first
+            hash[:element] = selector.scan(/.+?(?=[#.])/).first
+            hash
+          end
+        end
+      end.flatten.compact
+    end
 
     def scan_js
       JS_SCANNERS.map do |scanner|

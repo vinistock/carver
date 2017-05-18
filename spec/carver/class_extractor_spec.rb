@@ -44,5 +44,20 @@ describe Carver::ClassExtractor do
                               ])
       end
     end
+
+    context 'when type is css' do
+      let(:type) { :css }
+      let(:content) { File.read('spec/fixtures/sample_css.css') }
+
+      it 'finds css classes defined in stylesheet' do
+        expect(subject).to eq([
+                                { element: 'div', id: nil, classes: ['ui-helper-hidden'] },
+                                { element: nil, id: nil, classes: ['ui-helper-hidden-accessible'] },
+                                { element: nil, id: nil, classes: ['ui-helper-reset'] },
+                                { element: nil, id: 'id-one', classes: [] },
+                                { element: nil, id: 'id-two', classes: [] }
+                              ])
+      end
+    end
   end
 end
