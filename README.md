@@ -1,6 +1,7 @@
 # Carver
 
 [![Code Climate](https://codeclimate.com/github/vinistock/carver/badges/gpa.svg)](https://codeclimate.com/github/vinistock/carver/badges/gpa.svg) [![Build Status](https://travis-ci.org/vinistock/carver.svg?branch=master)](https://travis-ci.org/vinistock/carver) [![Test Coverage](https://codeclimate.com/github/vinistock/carver/badges/coverage.svg)](https://codeclimate.com/github/vinistock/carver/coverage) [![Gem Version](https://badge.fury.io/rb/carver.svg)](https://badge.fury.io/rb/carver) ![](http://ruby-gem-downloads-badge.herokuapp.com/carver?color=brightgreen&type=total)
+[![Open Source Helpers](https://www.codetriage.com/vinistock/carver/badges/users.svg)](https://www.codetriage.com/vinistock/carver)
 
 ## Installation
 
