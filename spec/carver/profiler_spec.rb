@@ -18,7 +18,7 @@ describe Carver::Profiler do
 
     it 'profiles method and logs results' do
       Carver.configuration.log_results = true
-      expect(Rails.logger).to receive(:info).with(/\[Carver\] source=Api::V1::ExamplesController#index type=controller total_allocated_memsize=.* total_retained_memsize=.*/)
+      expect(Rails.logger).to receive(:info).with(/\[Carver\] source=Api::V1::ExamplesController#index type=controller category=memory total_allocated_memsize=.* total_retained_memsize=.*/)
       subject
     end
 

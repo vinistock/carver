@@ -9,7 +9,7 @@ module Carver
         yield
       end
 
-      presenter = Presenter.new(report, path, action, parent)
+      presenter = Presenter.new(Result.new(report, :memory), path, action, parent)
       presenter.log if Carver.configuration.log_results
       presenter.add_to_results
     end

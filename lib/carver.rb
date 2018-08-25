@@ -7,6 +7,7 @@ require 'carver/configuration'
 require 'carver/presenter'
 require 'carver/generator'
 require 'carver/hooks'
+require 'carver/result'
 
 module Carver
   extend Hooks
