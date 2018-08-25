@@ -37,4 +37,25 @@ describe Carver::Profiler do
       expect(subject).to eq((5 + 2*10)**2)
     end
   end
+
+  describe '.benchmark' do
+    subject { described_class.benchmark(path, action, parent) { ExamplesController.new.index } }
+    let(:path) { 'api/v1/examples' }
+    let(:action) { 'index' }
+    let(:parent) { 'ApplicationController' }
+
+    it 'profiles method and logs results' do
+      Carver.configuration.log_results = true
+      expect(Rails.logger).to receive(:info).with(/\[Carver\] source=Api::V1::ExamplesController#index type=controller category=benchmark real=.* total=.*/)
+      subject
+    end
+
+    it 'adds results to current report if enabled' do
+      Carver.configuration.log_results = false
+      Carver.clear_results
+      subject
+      expect(Carver.current_results['Api::V1::ExamplesController#index'].first).to have_key(:real)
+      expect(Carver.current_results['Api::V1::ExamplesController#index'].first).to have_key(:total)
+    end
+  end
 end
