@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 describe Carver::Profiler do
   class ExamplesController < ActionController::Base
     def index
@@ -27,6 +28,13 @@ describe Carver::Profiler do
       subject
       expect(Carver.current_results['Api::V1::ExamplesController#index'].first).to have_key(:total_allocated_memsize)
       expect(Carver.current_results['Api::V1::ExamplesController#index'].first).to have_key(:total_retained_memsize)
+    end
+
+    it 'simply yields block if disabled' do
+      Carver.stop
+      expect(Carver::Presenter).to_not receive(:new)
+      expect(MemoryProfiler).to_not receive(:report)
+      expect(subject).to eq((5 + 2*10)**2)
     end
   end
 end
