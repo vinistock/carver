@@ -39,6 +39,8 @@ Carver.configure do |config|
   config.output_file = './profiling/results.json' # JSON file path to write results to
   config.generate_html = true			  # Generate HTML with profiling results at exit
   config.specific_targets = nil                   # Specific targets to profile
+  config.benchmark_enabled = false                # Enable benchmarking
+  config.memory_enabled = true                    # Enable memory profiling
 end
 ```
 
