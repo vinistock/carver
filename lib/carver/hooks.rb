@@ -35,9 +35,17 @@ module Carver
     def define_around_action_for(controller, actions)
       controller.constantize.class_eval do
         if actions.empty?
-          around_action :profile_controller_actions
+          around_action :profile_controller_actions if Carver.configuration.memory_enabled
+          around_action :benchmark_controller_actions if Carver.configuration.benchmark_enabled
         else
-          around_action :profile_controller_actions, only: actions
+          around_action :profile_controller_actions, only: actions if Carver.configuration.memory_enabled
+          around_action :benchmark_controller_actions, only: actions if Carver.configuration.benchmark_enabled
+        end
+
+        def benchmark_controller_actions
+          Carver::Profiler.benchmark(controller_path, action_name, 'ApplicationController') do
+            yield
+          end
         end
 
         def profile_controller_actions
@@ -51,8 +59,20 @@ module Carver
     def define_around_perform_for(job_class)
       job_class.constantize.class_eval do
         around_perform do |job|
-          Carver::Profiler.profile_memory(job.name, 'perform', 'ApplicationJob') do
-            yield
+          if Carver.configuration.benchmark_enabled && Carver.configuration.memory_enabled
+            Carver::Profiler.profile_memory(job.name, 'perform', 'ApplicationJob') do
+              Carver::Profiler.benchmark(job.name, 'perform', 'ApplicationJob') do
+                yield
+              end
+            end
+          elsif Carver.configuration.benchmark_enabled
+            Carver::Profiler.benchmark(job.name, 'perform', 'ApplicationJob') do
+              yield
+            end
+          elsif Carver.configuration.memory_enabled
+            Carver::Profiler.profile_memory(job.name, 'perform', 'ApplicationJob') do
+              yield
+            end
           end
         end
       end

@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+
+
 describe Carver::Hooks do
   include Carver::Hooks
 
@@ -8,6 +10,7 @@ describe Carver::Hooks do
     before do
       Carver.configuration.specific_targets = %w(Api::V1::ExamplesController#index PagesController#index ExamplesJob)
       allow(Rails).to receive(:load).and_return(true)
+      Carver.configuration.benchmark_enabled = true
     end
 
     let!(:random_controller) { class RandomController < ActionController::Base; end }
@@ -40,12 +43,15 @@ describe Carver::Hooks do
       subject
       around_filters = Api::V1::ExamplesController._process_action_callbacks.select { |f| f.kind == :around }.map(&:filter)
       expect(around_filters).to include(:profile_controller_actions)
+      expect(around_filters).to include(:benchmark_controller_actions)
       around_filters = PagesController._process_action_callbacks.select { |f| f.kind == :around }.map(&:filter)
       expect(around_filters).to include(:profile_controller_actions)
+      expect(around_filters).to include(:benchmark_controller_actions)
       around_filters = ExamplesJob._perform_callbacks.select { |f| f.kind == :around }.map(&:filter)
       expect(around_filters).to_not be_empty
       around_filters = RandomController._process_action_callbacks.select { |f| f.kind == :around }.map(&:filter)
       expect(around_filters).to_not include(:profile_controller_actions)
+      expect(around_filters).to_not include(:benchmark_controller_actions)
     end
   end
 end
