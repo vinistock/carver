@@ -2,38 +2,22 @@
 
 module Carver
   class Presenter
-    BYTES_TO_MB_CONSTANT = 1024**2
-
-    def initialize(results, path, action, parent)
-      @results = results
+    def initialize(result, path, action, parent)
+      @result = result
       @path = path
       @action = action
       @parent = parent
     end
 
     def log
-      Rails.logger.info(
-          "[Carver] source=#{entry_info[:name]} type=#{entry_info[:type]} total_allocated_memsize=#{allocated_memory} " \
-          "total_retained_memsize=#{retained_memory}"
-      )
+      Rails.logger.info("[Carver] source=#{entry_info[:name]} type=#{entry_info[:type]} #{@result.to_log}")
     end
 
     def add_to_results
-      Carver.add_to_results(
-          entry_info[:name],
-          { total_allocated_memsize: allocated_memory, total_retained_memsize: retained_memory }.freeze
-      )
+      Carver.add_to_results(entry_info[:name], @result.to_hash)
     end
 
     private
-
-    def allocated_memory
-      (@results.total_allocated_memsize.to_f / BYTES_TO_MB_CONSTANT).round(5)
-    end
-
-    def retained_memory
-      (@results.total_retained_memsize.to_f / BYTES_TO_MB_CONSTANT).round(5)
-    end
 
     def controller?
       @parent.downcase.include?('controller')
