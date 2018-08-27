@@ -35,18 +35,23 @@ module Carver
     def define_around_action_for(controller, actions)
       controller.constantize.class_eval do
         options = actions.empty? ? {} : { only: actions }
-        around_action :profile_controller_actions, options if Carver.configuration.memory_enabled
-        around_action :benchmark_controller_actions, options if Carver.configuration.benchmark_enabled
-
-        def benchmark_controller_actions
-          Carver::Profiler.benchmark(controller_path, action_name, 'ApplicationController') do
-            yield
-          end
-        end
+        around_action :profile_controller_actions, options
 
         def profile_controller_actions
-          Carver::Profiler.profile_memory(controller_path, action_name, 'ApplicationController') do
-            yield
+          if Carver.configuration.memory_enabled && Carver.configuration.benchmark_enabled
+            Carver::Profiler.benchmark(controller_path, action_name, 'ApplicationController') do
+              Carver::Profiler.profile_memory(controller_path, action_name, 'ApplicationController') do
+                yield
+              end
+            end
+          elsif Carver.configuration.memory_enabled
+            Carver::Profiler.profile_memory(controller_path, action_name, 'ApplicationController') do
+              yield
+            end
+          elsif Carver.configuration.benchmark_enabled
+            Carver::Profiler.benchmark(controller_path, action_name, 'ApplicationController') do
+              yield
+            end
           end
         end
       end
