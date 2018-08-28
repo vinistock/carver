@@ -19,11 +19,31 @@ module Carver
     private
 
     def sort(results)
+      memory_results = {}
+      benchmark_results = {}
+
       results.each do |key, value|
-        results[key].replace(value.sort_by { |a| -a[:total_allocated_memsize] })
+        memory = value.select { |a| a[:category] == :memory }
+        benchmark = value.select { |a| a[:category] == :benchmark }
+        memory_results[key] = memory unless memory.empty?
+        benchmark_results[key] = benchmark unless benchmark.empty?
       end
 
-      results.sort_by { |_, value| -value.first[:total_allocated_memsize] }.to_h
+      memory_results.each do |key, value|
+        memory_results[key].replace(value.sort_by { |a| -a[:total_allocated_memsize] })
+      end
+
+      benchmark_results.each do |key, value|
+        benchmark_results[key].replace(value.sort_by { |a| -a[:real] })
+      end
+
+      sorted_memory = memory_results.sort_by { |_, value| -value.first.try(:[], :total_allocated_memsize) }.to_h
+      sorted_benchmark = benchmark_results.sort_by { |_, value| -value.first.try(:[], :real) }.to_h
+
+      {
+        memory: sorted_memory,
+        benchmark: sorted_benchmark
+      }
     end
   end
 end

@@ -15,8 +15,10 @@
 
 <section>
   <h2>Controllers</h2>
+  <h3>Memory</h3>
 
-  <% @controller_results.each do |key, values| %>
+  <% i = 0 %>
+  <% @controller_results[:memory].each do |key, values| %>
       <div class="results-entry">
         <label><%= key %></label>
 
@@ -44,6 +46,45 @@
           </tbody>
         </table>
       </div>
+
+    <% i += 1 %>
+    <% if i % 3 == 0 %><div class="clearfix"></div><% end %>
+  <% end %>
+
+  <h3>Benchmark</h3>
+
+  <% i = 0 %>
+  <% @controller_results[:benchmark].each do |key, values| %>
+    <div class="results-entry">
+      <label><%= key %></label>
+
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Real (s)</th>
+          <th>Total (s)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="means">
+          <td>Mean</td>
+          <td><%= (values.map { |v| v[:real] }.reduce(:+) / values.count).round(5) %></td>
+          <td><%= (values.map { |v| v[:total] }.reduce(:+) / values.count).round(5) %></td>
+        </tr>
+        <% values.each_with_index do |value, index| %>
+          <tr class="<%= index.even? ? 'even' : 'odd' %>">
+            <td><%= "##{index+1}" %></td>
+            <td><%= value[:real] %></td>
+            <td><%= value[:total] %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% i += 1 %>
+    <% if i % 3 == 0 %><div class="clearfix"></div><% end %>
   <% end %>
 </section>
 
@@ -52,8 +93,10 @@
 
 <section>
   <h2>Jobs</h2>
+  <h3>Memory</h3>
 
-  <% @job_results.each do |key, values| %>
+  <% i = 0 %>
+  <% @job_results[:memory].each do |key, values| %>
       <div class="results-entry">
         <label><%= key %></label>
 
@@ -81,5 +124,44 @@
           </tbody>
         </table>
       </div>
+
+    <% i += 1 %>
+    <% if i % 3 == 0 %><div class="clearfix"></div><% end %>
+  <% end %>
+
+  <h3>Benchmark</h3>
+
+  <% i = 0 %>
+  <% @job_results[:benchmark].each do |key, values| %>
+    <div class="results-entry">
+      <label><%= key %></label>
+
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Real (s)</th>
+          <th>Total (s)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="means">
+          <td>Mean</td>
+          <td><%= values.map { |v| v[:real] }.reduce(:+) / values.count %></td>
+          <td><%= values.map { |v| v[:total] }.reduce(:+) / values.count %></td>
+        </tr>
+        <% values.each_with_index do |value, index| %>
+          <tr class="<%= index.even? ? 'even' : 'odd' %>">
+            <td><%= "##{index+1}" %></td>
+            <td><%= value[:real] %></td>
+            <td><%= value[:total] %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% i += 1 %>
+    <% if i % 3 == 0 %><div class="clearfix"></div><% end %>
   <% end %>
 </section>

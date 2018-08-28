@@ -21,7 +21,7 @@ Or install it yourself as:
 
 ## Usage
 
-Carver profiles the memory usage of your controllers' actions and your jobs' performs.
+Carver profiles the memory or CPU usage of your controllers' actions and your jobs' performs.
 
 Simply adding the gem will create hooks on your ApplicationController and your ApplicationJob that will profile the memory usage.
 
@@ -39,7 +39,7 @@ Carver.configure do |config|
   config.output_file = './profiling/results.json' # JSON file path to write results to
   config.generate_html = true			  # Generate HTML with profiling results at exit
   config.specific_targets = nil                   # Specific targets to profile
-  config.benchmark_enabled = false                # Enable benchmarking
+  config.benchmark_enabled = false                # Enable CPU benchmarking
   config.memory_enabled = true                    # Enable memory profiling
 end
 ```
@@ -63,51 +63,18 @@ Carver.configure do |config|
   config.specific_targets = %w(Api::V1::ExamplesController#index,show ExampleJob PagesController#show)
 end
 ```
-* You can also remove the entities from the "targets" configuration and then register the around filters yourself as below.
-```ruby
-# Carver configuration using no targets
-Carver.configure do |config|
-  config.targets = %w()
-end
-
-# Example controller with manual definition of the memory profiler filter
-class ExamplesController < ApplicationController
-  around_action only: %i(index) do
-    Carver::Profiler.profile_memory(controller_path, action_name, 'ApplicationController') do
-      yield
-    end
-  end
-  
-  def index
-  end
-  
-  def show
-  end
-end
-
-# Example job with manual definition of the memory profiler filter
-class ExampleJob < ApplicationJob
-  around_perform do |job|
-    Carver::Profiler.profile_memory(job.name, 'perform', 'ApplicationJob') do
-      yield
-    end
-  end
-  
-  def perform
-  end
-end
-```
 
 At the end of your test suite execution, given that carver is enabled, results will be written to profiling/results.json such as the example below.
 
 ```json
 {
   "Api::V1::ExamplesController#index": [
-    { "total_allocated_memsize": 21000, "total_retained_memsize": 1500 },
-    { "total_allocated_memsize": 22150, "total_retained_memsize": 1450 }
+    { "category": "memory", "total_allocated_memsize": 21000, "total_retained_memsize": 1500 },
+    { "category": "memory", "total_allocated_memsize": 22150, "total_retained_memsize": 1450 },
+    { "category": "benchmark", "real": 3.5, "total": 5.2 }
   ],
   "ExamplesJob#perform": [
-    { "total_allocated_memsize": 5700, "total_retained_memsize": 800 }
+    { "category": "memory", "total_allocated_memsize": 5700, "total_retained_memsize": 800 }
   ]
 }
 ```
